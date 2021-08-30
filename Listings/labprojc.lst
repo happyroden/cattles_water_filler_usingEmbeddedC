@@ -1,0 +1,147 @@
+C51 COMPILER V9.60.0.0   LABPROJC                                                          06/21/2021 00:58:05 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE LABPROJC
+OBJECT MODULE PLACED IN .\Objects\labprojc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE labprojc.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\
+                    -labprojc.lst) TABS(2) OBJECT(.\Objects\labprojc.obj)
+
+line level    source
+
+   1          #include <REGX51.H>
+   2          
+   3          #define ON 1
+   4          #define OFF 0
+   5          sbit led1=P1^0;
+   6          sbit led2=P1^1;
+   7          sbit led3=P1^2;
+   8          
+   9          #define PRESS 1
+  10          #define NOT_PRESSED 0
+  11          sbit sw1=P3^3;
+  12          sbit sw2=P3^4;
+  13          
+  14          #define HIGH 1
+  15          #define LOW 0
+  16          sbit M_a=P1^5;
+  17          sbit M_b=P1^6;
+  18          
+  19          #define LCD P2 //liquid cristal display
+  20          sbit RS =P3^0; //control signal rregister select
+  21          sbit EN =P3^1; //enable signal
+  22          
+  23          void delay(unsigned int time) {
+  24   1          long int i;
+  25   1          for(i=0; i<=time; i++);
+  26   1      }
+  27          void lcdCommand(const unsigned char command){
+  28   1          LCD = command;
+  29   1          RS = 0; //when we do not display sth its 0
+  30   1          EN  = 1;
+  31   1          delay(500);
+  32   1          EN=0;
+  33   1      }
+  34          void lcdData(const unsigned char dataPrint) {
+  35   1          LCD = dataPrint;
+  36   1          RS=1; //when we want to display it stored as ascii we put 1
+  37   1          EN=1; //high to low pulse
+  38   1          delay(500);
+  39   1          EN=0;
+  40   1      }
+  41          void displayOnLcd(const char *pData) {
+  42   1          while(*pData) {
+  43   2              lcdData(*pData);
+  44   2              pData++;
+  45   2              delay(500);
+  46   2          }
+  47   1      }
+  48          void lcdStart(void) {
+  49   1          delay(500);
+  50   1          lcdCommand(0x01);
+  51   1          delay(500);
+  52   1          lcdCommand(0x80);
+  53   1          delay(500);
+  54   1          lcdCommand(0x0C);
+C51 COMPILER V9.60.0.0   LABPROJC                                                          06/21/2021 00:58:05 PAGE 2   
+
+  55   1      }
+  56          
+  57          unsigned char checkPetWater(void){
+  58   1        if(sw1==0){
+  59   2            led1 = ON;
+  60   2            if(sw2==0){
+  61   3              return 100;
+  62   3            }return 50;
+  63   2        }return 0;
+  64   1      }
+  65          
+  66          void showPetWaterLevel(unsigned char status)
+  67          {
+  68   1          switch(status)
+  69   1          {
+  70   2          case 0:
+  71   2              led1 = OFF;
+  72   2              led2 = OFF;
+  73   2              led3 = OFF;
+  74   2              displayOnLcd("0%");
+  75   2              break;
+  76   2          case 50:
+  77   2              led1 = ON;
+  78   2              led2 = ON;
+  79   2              led3 = OFF;
+  80   2              displayOnLcd("50%");
+  81   2              break;
+  82   2          case 100:
+  83   2              led1 = ON;
+  84   2              led2 = ON;
+  85   2              led3 = ON;
+  86   2              displayOnLcd("100%");
+  87   2              break;
+  88   2          }
+  89   1      }
+  90          void run() {
+  91   1          M_a=1;
+  92   1          M_b=0;
+  93   1          M_a=1;
+  94   1          M_b=0;
+  95   1      }
+  96          void stop() {
+  97   1          M_a=0;
+  98   1          M_b=0;
+  99   1          M_a=0;
+ 100   1          M_b=0;
+ 101   1      }
+ 102          int main() {
+ 103   1          unsigned char petStatus = 0x00;
+ 104   1          unsigned char tmpPetStatus = 0x01;
+ 105   1          while(1) {
+ 106   2              petStatus = checkPetWater();
+ 107   2              if(petStatus != tmpPetStatus) {
+ 108   3                  lcdStart();
+ 109   3                  showPetWaterLevel(petStatus);
+ 110   3                  tmpPetStatus = petStatus;
+ 111   3                  if(tmpPetStatus <50) {
+ 112   4                    if(tmpPetStatus !=100) run();
+ 113   4                  }
+ 114   3                  else {
+ 115   4                      stop();
+ 116   4                  }
+C51 COMPILER V9.60.0.0   LABPROJC                                                          06/21/2021 00:58:05 PAGE 3   
+
+ 117   3              }
+ 118   2          }
+ 119   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    295    ----
+   CONSTANT SIZE    =     12    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       8
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
